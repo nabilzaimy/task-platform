@@ -1,0 +1,13 @@
+### Java / Maven ###
+target/
+*.class
+
+### IDE ###
+.idea/
+*.iml
+
+### OS ###
+.DS_Store
+
+### Environment ###
+.env
