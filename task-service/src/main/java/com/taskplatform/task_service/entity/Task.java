@@ -1,11 +1,15 @@
 package com.taskplatform.task_service.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
 @Entity
 @Table (name = "tasks")
+@Getter
+@Setter
 public class Task {
 
     @Id
@@ -45,8 +49,8 @@ public class Task {
     }
 
     @PreUpdate
-    void onUpdate(){
-            updatedAt = Instant.now();
+    void onUpdate() {
+        updatedAt = Instant.now();
         }
 
     }

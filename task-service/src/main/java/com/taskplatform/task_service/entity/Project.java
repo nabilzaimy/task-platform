@@ -2,11 +2,15 @@ package com.taskplatform.task_service.entity;
 
 import jakarta.persistence.*;
 import jakarta.persistence.Entity;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "projects")
+@Getter
+@Setter
 public class Project {
 
     @Id
