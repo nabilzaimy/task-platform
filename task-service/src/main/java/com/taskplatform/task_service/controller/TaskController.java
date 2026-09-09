@@ -1,6 +1,7 @@
 package com.taskplatform.task_service.controller;
 
-import com.taskplatform.task_service.entity.Task;
+import com.taskplatform.task_service.dto.TaskRequest;
+import com.taskplatform.task_service.dto.TaskResponse;
 import com.taskplatform.task_service.service.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<Task> getTasks(@RequestParam(required = false) Long projectId) {
+    public List<TaskResponse> getTasks(@RequestParam(required = false) Long projectId) {
         if (projectId != null) {
             return taskService.getTaskByProject(projectId);
         }
@@ -27,19 +28,19 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public Task getTaskById(@PathVariable Long id) {
+    public TaskResponse getTaskById(@PathVariable Long id) {
         return taskService.getTaskById(id);
     }
 
     @PostMapping
-    public ResponseEntity<Task> createTask(@RequestParam Long projectId, @RequestBody Task task) {
-        Task created = taskService.createTask(projectId, task);
+    public ResponseEntity<TaskResponse> createTask(@RequestParam Long projectId, @RequestBody TaskRequest request) {
+        TaskResponse created = taskService.createTask(projectId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public Task updateTask(@PathVariable Long id, @RequestBody Task task) {
-        return taskService.updateTask(id, task);
+    public TaskResponse updateTask(@PathVariable Long id, @RequestBody TaskRequest request) {
+        return taskService.updateTask(id, request);
     }
 
     @DeleteMapping("/{id}")
