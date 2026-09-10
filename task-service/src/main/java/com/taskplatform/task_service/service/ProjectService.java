@@ -4,6 +4,8 @@ import com.taskplatform.task_service.dto.ProjectRequest;
 import com.taskplatform.task_service.dto.ProjectResponse;
 import com.taskplatform.task_service.entity.Project;
 import com.taskplatform.task_service.repository.ProjectRepository;
+import com.taskplatform.task_service.exception.ResourceNotFoundException;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -54,7 +56,7 @@ public class ProjectService {
 
     private Project findProjectOrThrow(Long id) {
         return projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + id));
     }
 
     private ProjectResponse toResponse(Project project) {

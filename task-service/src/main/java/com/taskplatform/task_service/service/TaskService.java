@@ -4,6 +4,7 @@ import com.taskplatform.task_service.dto.TaskRequest;
 import com.taskplatform.task_service.dto.TaskResponse;
 import com.taskplatform.task_service.entity.Project;
 import com.taskplatform.task_service.entity.Task;
+import com.taskplatform.task_service.exception.ResourceNotFoundException;
 import com.taskplatform.task_service.repository.ProjectRepository;
 import com.taskplatform.task_service.repository.TaskRepository;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ public class TaskService {
 
     public TaskResponse createTask(Long projectId, TaskRequest request) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found with id: " + projectId));
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + projectId));
 
         Task task = new Task();
         task.setTitle(request.getTitle());
@@ -69,7 +70,7 @@ public class TaskService {
 
     private Task findTaskOrThrow(Long id) {
         return taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
     }
 
     private TaskResponse toResponse(Task task) {
