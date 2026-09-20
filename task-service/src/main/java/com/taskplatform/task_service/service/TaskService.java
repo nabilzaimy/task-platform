@@ -1,5 +1,6 @@
 package com.taskplatform.task_service.service;
 
+import com.taskplatform.task_service.config.RabbitMQConfig;
 import com.taskplatform.task_service.dto.TaskRequest;
 import com.taskplatform.task_service.dto.TaskResponse;
 import com.taskplatform.task_service.entity.Project;
@@ -7,6 +8,7 @@ import com.taskplatform.task_service.entity.Task;
 import com.taskplatform.task_service.exception.ResourceNotFoundException;
 import com.taskplatform.task_service.repository.ProjectRepository;
 import com.taskplatform.task_service.repository.TaskRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,10 +18,12 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
+    private final RabbitTemplate rabbitTemplate;
 
-    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository) {
+    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, RabbitTemplate rabbitTemplate) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     public TaskResponse createTask(Long projectId, TaskRequest request) {
@@ -34,8 +38,17 @@ public class TaskService {
         task.setProject(project);
 
         Task saved = taskRepository.save(task);
-        return toResponse(saved);
+        TaskResponse response = toResponse(saved);
+
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_NAME,
+                RabbitMQConfig.TASK_CREATED_ROUTING_KEY,
+                response
+        );
+
+        return response;
     }
+
 
     public List<TaskResponse> getAllTasks() {
         return taskRepository.findAll().stream()
