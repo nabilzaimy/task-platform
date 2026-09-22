@@ -1,5 +1,7 @@
 package com.taskplatform.notification_service.config;
 
+import com.taskplatform.notification_service.dto.TaskEventDto;
+import com.taskplatform.notification_service.dto.TaskResponse; // Ensure this points to your local DTO class
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
@@ -9,6 +11,9 @@ import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class RabbitMQConfig {
@@ -35,12 +40,19 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(taskCreatedQueue).to(taskEventsExchange).with(ROUTING_KEY_TASK_CREATED);
     }
 
-    // 4. JSON Message Converter
+    // 4. JSON Message Converter with Class Mapping
     @Bean
     public MessageConverter jsonMessageConverter() {
         JacksonJsonMessageConverter converter = new JacksonJsonMessageConverter();
+
         DefaultClassMapper classMapper = new DefaultClassMapper();
         classMapper.setTrustedPackages("*");
+
+        // Map producer's TaskResponse to consumer's TaskEventDto
+        Map<String, Class<?>> idClassMapping = new HashMap<>();
+        idClassMapping.put("com.taskplatform.task_service.dto.TaskResponse", TaskEventDto.class);
+        classMapper.setIdClassMapping(idClassMapping);
+
         converter.setClassMapper(classMapper);
         return converter;
     }
