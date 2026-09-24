@@ -1,14 +1,17 @@
 package com.taskplatform.task_service.dto;
 
-import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 @Getter
 @Setter
-public class ProjectResponse {
+public class ProjectResponse implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private Long id;
     private String name;
     private String description;

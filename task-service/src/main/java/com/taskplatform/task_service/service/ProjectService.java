@@ -4,11 +4,12 @@ import com.taskplatform.task_service.dto.ProjectRequest;
 import com.taskplatform.task_service.dto.ProjectResponse;
 import com.taskplatform.task_service.entity.Project;
 import com.taskplatform.task_service.repository.ProjectRepository;
-import com.taskplatform.task_service.exception.ResourceNotFoundException;
-
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService {
@@ -19,55 +20,58 @@ public class ProjectService {
         this.projectRepository = projectRepository;
     }
 
+    public List<ProjectResponse> getAllProjects() {
+        return projectRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     public ProjectResponse createProject(ProjectRequest request) {
         Project project = new Project();
         project.setName(request.getName());
         project.setDescription(request.getDescription());
         project.setOwnerId(request.getOwnerId());
 
-        Project saved = projectRepository.save(project);
-        return toResponse(saved);
+        Project savedProject = projectRepository.save(project);
+        return mapToResponse(savedProject);
     }
 
-    public List<ProjectResponse> getAllProjects() {
-        return projectRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
+    // Cache the single project response by ID using Hazelcast
+    @Cacheable(value = "projects", key = "#id")
     public ProjectResponse getProjectById(Long id) {
-        Project project = findProjectOrThrow(id);
-        return toResponse(project);
+        System.out.println("--> [DB HIT] Fetching project from PostgreSQL database for ID: " + id);
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Project not found with id: " + id));
+        return mapToResponse(project);
     }
 
+    // Update project and clear cache for this ID
+    @CacheEvict(value = "projects", key = "#id")
     public ProjectResponse updateProject(Long id, ProjectRequest request) {
-        Project existing = findProjectOrThrow(id);
-        existing.setName(request.getName());
-        existing.setDescription(request.getDescription());
-        existing.setOwnerId(request.getOwnerId());
-        Project saved = projectRepository.save(existing);
-        return toResponse(saved);
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Project not found with id: " + id));
+
+        project.setName(request.getName());
+        project.setDescription(request.getDescription());
+        project.setOwnerId(request.getOwnerId());
+
+        Project updatedProject = projectRepository.save(project);
+        return mapToResponse(updatedProject);
     }
 
+    // Evict cache entry when project is deleted
+    @CacheEvict(value = "projects", key = "#id")
     public void deleteProject(Long id) {
-        Project existing = findProjectOrThrow(id);
-        projectRepository.delete(existing);
+        projectRepository.deleteById(id);
     }
 
-    private Project findProjectOrThrow(Long id) {
-        return projectRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + id));
-    }
-
-    private ProjectResponse toResponse(Project project) {
+    // Helper method to convert Project entity to ProjectResponse DTO
+    private ProjectResponse mapToResponse(Project project) {
         ProjectResponse response = new ProjectResponse();
         response.setId(project.getId());
         response.setName(project.getName());
         response.setDescription(project.getDescription());
         response.setOwnerId(project.getOwnerId());
-        response.setCreatedAt(project.getCreatedAt());
-        response.setUpdatedAt(project.getUpdatedAt());
         return response;
     }
-
 }
