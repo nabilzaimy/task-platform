@@ -31,6 +31,15 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_PASSWORD
+            # Add these RabbitMQ parameters:
+            - name: SPRING_RABBITMQ_HOST
+              value: "rabbitmq"
+            - name: SPRING_RABBITMQ_PORT
+              value: "5672"
+            - name: SPRING_RABBITMQ_USERNAME
+              value: "guest"
+            - name: SPRING_RABBITMQ_PASSWORD
+              value: "guest"
           readinessProbe:
             httpGet:
               path: /actuator/health
