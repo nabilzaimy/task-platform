@@ -1,0 +1,18 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: task-service-projects
+              uri: http://task-service:8080
+              predicates:
+                - Path=/api/v1/projects/**
+            - id: task-service-tasks
+              uri: http://task-service:8080
+              predicates:
+                - Path=/api/v1/tasks/**
+            - id: user-service
+              uri: http://user-service:8081
+              predicates:
+                - Path=/api/v1/users/**
